@@ -1,0 +1,42 @@
+{
+    "name"              : "jbzoo/cck-cli",
+    "type"              : "project",
+    "license"           : "MIT",
+    "minimum-stability" : "stable",
+    "authors"           : [
+        {
+            "name"  : "SmetDenis",
+            "email" : "denis@jbzoo.com",
+            "role"  : "lead"
+        }
+    ],
+    "autoload"          : {
+        "psr-4" : {
+            "JBZoo\\Cli\\" : "src"
+        },
+        "files" : [
+            "src/defines.php"
+        ]
+    },
+    "require"           : {
+        "php"                    : ">=5.3",
+        "jbzoo/composer-cleanup" : "1.x-dev",
+        "jbzoo/console"          : "1.x-dev",
+        "jbzoo/data"             : "^1.0",
+        "jbzoo/utils"            : "^1.0",
+        "symfony/process"        : "^3.0"
+    },
+    "config"            : {
+        "optimize-autoloader" : true,
+        "bin-dir"             : "bin"
+    },
+    "extra"             : {
+        "branch-alias" : {
+            "dev-master" : "1.x-dev"
+        }
+    },
+    "support"           : {
+        "forum" : "http://forum.jbzoo.com",
+        "email" : "admin@jbzoo.com"
+    }
+}
