@@ -13,7 +13,7 @@
  * @author    Denis Smetannikov <denis@jbzoo.com>
  */
 
-namespace JBZoo\Cli;
+namespace JBZoo\CckCli;
 
 use JBZoo\Console\Command as JBZooCommand;
 use JBZoo\Data\Data;
@@ -32,6 +32,19 @@ class Command extends JBZooCommand
      * @var Data
      */
     protected $_config;
+
+    /**
+     * Init all
+     */
+    protected function _init()
+    {
+        $this->_initGlobaConfig();
+        $this->_loadSystem();
+        $this->_loadJoomla();
+        $this->_loadJBZoo();
+        $this->_setEnv();
+        $this->_userAuth();
+    }
 
     /**
      * Define system variables
@@ -81,19 +94,6 @@ class Command extends JBZooCommand
         require_once JPATH_BASE . '/media/zoo/applications/jbuniversal/framework/jbzoo.php';
 
         \JBZoo::init();
-    }
-
-    /**
-     * Init all
-     */
-    protected function _init()
-    {
-        $this->_initGlobaConfig();
-        $this->_loadSystem();
-        $this->_loadJoomla();
-        $this->_loadJBZoo();
-        $this->_setEnv();
-        $this->_userAuth();
     }
 
     /**

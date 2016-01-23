@@ -19,8 +19,13 @@ use JBZoo\Utils\FS;
 define('JBZOO_CLI', true); // simple security
 define('JBZOO_CLI_ROOT', FS::real(__DIR__ . ' /../'));
 
+
 // Try to find Joomla root path
 $jrootPath   = FS::real(__DIR__ . '/../../../');
 $jconfigPath = FS::real($jrootPath . '/configuration.php');
-$path        = $jconfigPath ? $jrootPath : 'W:/projects/jbzoo/test3/public_html'; // placeholder for developer
+$path        = $jconfigPath ? $jrootPath : getenv('JOOMLA_DEV_PATH'); // placeholder for developer
+
+if (!$path) {
+    throw new Exception('Joomla Root Path is not found!');
+}
 define('JBZOO_CLI_JOOMLA_ROOT', FS::real($path));

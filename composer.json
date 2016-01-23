@@ -1,6 +1,10 @@
 {
     "name"              : "jbzoo/cck-cli",
     "type"              : "project",
+    "description"       : "Command line wrapper for Joomla JBZoo CCK",
+    "keywords"          : [
+        "jbzoo", "cli", "import", "export", "reindex", "database", "joomla", "cck"
+    ],
     "license"           : "MIT",
     "minimum-stability" : "stable",
     "authors"           : [
@@ -12,7 +16,7 @@
     ],
     "autoload"          : {
         "psr-4" : {
-            "JBZoo\\Cli\\" : "src"
+            "JBZoo\\CckCli\\" : "src"
         },
         "files" : [
             "src/defines.php"
