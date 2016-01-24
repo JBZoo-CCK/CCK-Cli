@@ -7,10 +7,16 @@
 
 ### Example
 
-```shell
+```sh
 ./cli/jbzoo/bin/jbzoo
 ./cli/jbzoo/bin/jbzoo db:reindex
 ```
+
+![Output example#1](http://llfl.ru/images/v3/ct9l.png)
+
+### Support
+
+Learn more on [JBZoo Support Forum](http://forum.jbzoo.com/)
 
 ### License
 
