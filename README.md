@@ -2,8 +2,7 @@
 
 #### Command line wrapper for Joomla JBZoo CCK v220
 
-[![License](https://poser.pugx.org/jbzoo/cck-cli/license)](https://packagist.org/packages/jbzoo/cck-cli)
-[![Latest Stable Version](https://poser.pugx.org/JBZoo/cck-cli/v/stable)](https://packagist.org/packages/jbzoo/cck-cli) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/JBZoo/CCK-Cli/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/JBZoo/CCK-Cli/?branch=master)
+[![License](https://poser.pugx.org/jbzoo/cck-cli/license)](https://packagist.org/packages/jbzoo/cck-cli) [![Latest Stable Version](https://poser.pugx.org/JBZoo/cck-cli/v/stable)](https://packagist.org/packages/jbzoo/cck-cli) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/JBZoo/CCK-Cli/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/JBZoo/CCK-Cli/?branch=master)
 
 ### Install
 
