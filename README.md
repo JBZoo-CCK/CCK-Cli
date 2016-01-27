@@ -25,7 +25,7 @@ composer create-project jbzoo/cck-cli:1.x-dev ./cli/jbzoo/
 
 ### Preview screen
 
-Full command list see via `jbzoo list`
+This screen is just preview of beta version. So, full command list see via `jbzoo list`.
 ![Output example#1](http://llfl.ru/images/v3/ct9l.png)
 
 
