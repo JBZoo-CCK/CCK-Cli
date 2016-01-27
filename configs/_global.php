@@ -16,7 +16,7 @@
 defined('JBZOO_CLI') or die;
 
 return array(
-    'host' => 'example.com',
+    'host' => '',
 
     'auth' => array(
         'login'     => 'admin',
