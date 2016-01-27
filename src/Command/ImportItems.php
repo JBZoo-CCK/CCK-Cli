@@ -115,8 +115,8 @@ class ImportItems extends CommandJBZoo
         $this->_postImport();
         $this->_showProfiler('Import - Post handler');
 
-        //$this->_moveCsvFile();
-        //$this->_showProfiler('Import - Done!');
+        $this->_moveCsvFile($csvInfo['path']);
+        $this->_showProfiler('Import - Done!');
     }
 
     /**
@@ -178,7 +178,7 @@ class ImportItems extends CommandJBZoo
         $this->_jbsession->setGroup($sesData, 'import');
 
         if ($this->_isDebug()) {
-            $this->_(print_r($sesData, true), 'Info');
+            $this->_('Current import params: ' . print_r($sesData, true), 'Info');
         }
 
         return new Data($sesData);
@@ -193,7 +193,6 @@ class ImportItems extends CommandJBZoo
     }
 
     /**
-     * Move file
      * @return bool
      */
     protected function _postImport()
@@ -204,6 +203,30 @@ class ImportItems extends CommandJBZoo
         $this->_jbsession->set('ids', $addedIds, 'import-ids');
 
         @$this->_jbimport->itemsPostProcess();
+
+        return true;
+    }
+
+    /**
+     * Move current file to used folder
+     * @param string $csvFile
+     * @return bool
+     */
+    protected function _moveCsvFile($csvFile)
+    {
+        $usedDir = $this->_config->find('used');
+        if (!$usedDir) {
+            return false;
+        }
+
+        $dstFile = $usedDir . '/' . pathinfo($csvFile, PATHINFO_FILENAME) . '_' . date('Y-m-d_H-i-s') . '.csv';
+        $dstFile = \JPath::clean($dstFile);
+
+        if (\JFile::move($csvFile, $dstFile)) {
+            $this->_('CSV file moved to: ' . $dstFile, 'Info');
+        } else {
+            $this->_('Couldn\'t move CSV file to: ' . $dstFile, 'Error');
+        }
 
         return true;
     }

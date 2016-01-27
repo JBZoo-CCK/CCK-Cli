@@ -21,10 +21,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Class ToolReindex
+ * Class ToolsReindex
  * @package JBZoo/Console
  */
-class ToolReindex extends CommandJBZoo
+class ToolsReindex extends CommandJBZoo
 {
     /**
      * Configuration of command
@@ -32,7 +32,7 @@ class ToolReindex extends CommandJBZoo
     protected function configure() // @codingStandardsIgnoreLine
     {
         $this
-            ->setName('tool:reindex')
+            ->setName('tools:reindex')
             ->setDescription('Reindex database for JBZoo filter');
     }
 
@@ -49,21 +49,22 @@ class ToolReindex extends CommandJBZoo
         $this->_init();
 
         // init vars
-        $offset     = 0;
-        $reIndex    = -1;
         $indexModel = \JBModelSearchindex::model();
         $tolalItems = $indexModel->getTotal();
         $indexStep  = $this->_config->find('step', 100);
 
-        $progress = new ProgressBar($output, $tolalItems);
-        $progress->advance(0);
+        $this->_showProfiler('Reindex - prepared');
 
-        while ($reIndex != 0) {
-            $reIndex = $indexModel->reIndex($indexStep, $offset);
-            $offset += $indexStep;
-            $progress->advance($indexStep);
-        }
+        $this->_progressBar(
+            'Database ReIndex',
+            $tolalItems,
+            $indexStep,
+            function ($offset) use ($indexModel, $indexStep) {
+                $reIndex = $indexModel->reIndex($indexStep, $offset);
+                return $reIndex < 0 ? false : true;
+            }
+        );
 
-        $progress->finish();
+        $this->_showProfiler('Reindex - Done!');
     }
 }

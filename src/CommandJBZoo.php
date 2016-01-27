@@ -257,11 +257,11 @@ class CommandJBZoo extends Command
         $message = array(
             'Memory: ' . $memoryCur . 'MB',
             'Mem.Peak: ' . $memoryPeak . 'MB',
-            " Time: " . $time . 's',
+            "Time: " . $time . 's',
             $label ? '(' . $label . ')' : ' ',
         );
 
-        $this->_(implode("\t", $message), 'Info');
+        $this->_(implode("  |  ", $message), 'Info');
     }
 
     /**
@@ -269,10 +269,10 @@ class CommandJBZoo extends Command
      *
      * @param string   $name
      * @param int      $total
-     * @param int      $step
+     * @param int      $stepSize
      * @param \Closure $callback
      */
-    protected function _progressBar($name, $total, $step, $callback)
+    protected function _progressBar($name, $total, $stepSize, $callback)
     {
         $this->_('Current progress of ' . $name . ' (Wait! or `Ctrl+C` to cancel):');
 
@@ -280,16 +280,15 @@ class CommandJBZoo extends Command
         $progressBar->display();
         $progressBar->setRedrawFrequency(1);
 
-        for ($currentStep = 0; $currentStep <= $total; $currentStep += $step) {
+        for ($currentStep = 0; $currentStep <= $total; $currentStep += $stepSize) {
 
-            $currentProgress = $currentStep * $step;
-            $callbackResult  = $callback($currentStep);
+            $callbackResult = $callback($currentStep, $stepSize);
 
-            if ($callbackResult === false || $currentProgress >= $total) {
+            if ($callbackResult === false) {
                 break;
             }
 
-            $progressBar->setProgress($currentProgress);
+            $progressBar->setProgress($currentStep);
         }
 
         $progressBar->finish();

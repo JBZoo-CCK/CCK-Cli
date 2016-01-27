@@ -18,6 +18,7 @@ defined('JBZOO_CLI') or die;
 return array(
     'source'     => JPATH_BASE . '/cli/jbzoo/resources/sources/items-import.csv',   // Try to find source file on start
     'used'       => JPATH_BASE . '/cli/jbzoo/resources/used',                       // Move already used csv-files
+                                                                                    // If option empty - don't move
     'step'       => 100,                                                            // Step size
 
     'reindex'    => 1,  // Reindex database while import process
