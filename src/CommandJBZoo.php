@@ -98,7 +98,8 @@ class CommandJBZoo extends Command
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         if (!$_SERVER['HTTP_HOST']) {
-            throw new Exception('Host is undefined. Check global config "./config/_global.php"');
+            $this->_('Host is undefined. Please, check global config "./config/_global.php"', 'Error');
+            $this->_('Joomla need it for browser simulation', 'Error', 1);
         }
 
         // no output
