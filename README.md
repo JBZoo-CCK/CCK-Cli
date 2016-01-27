@@ -3,15 +3,17 @@
 #### Command line wrapper for Joomla JBZoo CCK v220
 
 [![License](https://poser.pugx.org/jbzoo/cck-cli/license)](https://packagist.org/packages/jbzoo/cck-cli)
-[![Latest Stable Version](https://poser.pugx.org/JBZoo/cck-cli/v/stable)](https://packagist.org/packages/jbzoo/cck-cli)
+[![Latest Stable Version](https://poser.pugx.org/JBZoo/cck-cli/v/stable)](https://packagist.org/packages/jbzoo/cck-cli) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/JBZoo/CCK-Cli/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/JBZoo/CCK-Cli/?branch=master)
 
 ### Install
+
+The best way
 ```sh
 cd <Joomla root path>
 composer create-project jbzoo/cck-cli:1.x-dev ./cli/jbzoo/
 ```
 
-Or unpack last zip from [Releases page](https://github.com/JBZoo/CCK-Cli/releases) to <joomla>/cli/jbzoo
+...or unpack last zip `jbzoo-cli-pack.zip` from [Releases page](https://github.com/JBZoo/CCK-Cli/releases) to <joomla>/cli/jbzoo
 
 ### Example
 ```sh
