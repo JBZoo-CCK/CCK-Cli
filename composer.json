@@ -16,7 +16,7 @@
     ],
     "autoload"          : {
         "psr-4" : {
-            "JBZoo\\CckCli\\" : "src"
+            "JBZoo\\Console\\" : "src"
         },
         "files" : [
             "src/defines.php"
@@ -24,8 +24,7 @@
     },
     "require"           : {
         "php"                    : ">=5.3",
-        "jbzoo/composer-cleanup" : "1.x-dev",
-        "jbzoo/console"          : "1.x-dev",
+        "jbzoo/console"          : "^1.0",
         "jbzoo/data"             : "^1.0",
         "jbzoo/utils"            : "^1.0",
         "symfony/process"        : "^3.0"

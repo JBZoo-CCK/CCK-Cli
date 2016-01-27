@@ -15,16 +15,16 @@
 
 namespace JBZoo\Console\Command;
 
-use JBZoo\CckCli\Command;
+use JBZoo\Console\CommandJBZoo;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Class DbReindex
+ * Class ToolReindex
  * @package JBZoo/Console
  */
-class DbReindex extends Command
+class ToolReindex extends CommandJBZoo
 {
     /**
      * Configuration of command
@@ -32,7 +32,7 @@ class DbReindex extends Command
     protected function configure() // @codingStandardsIgnoreLine
     {
         $this
-            ->setName('db:reindex')
+            ->setName('tool:reindex')
             ->setDescription('Reindex database for JBZoo filter');
     }
 
@@ -53,7 +53,7 @@ class DbReindex extends Command
         $reIndex    = -1;
         $indexModel = \JBModelSearchindex::model();
         $tolalItems = $indexModel->getTotal();
-        $indexStep  = $this->_config->find('reindex.step', 100);
+        $indexStep  = $this->_config->find('step', 100);
 
         $progress = new ProgressBar($output, $tolalItems);
         $progress->advance(0);

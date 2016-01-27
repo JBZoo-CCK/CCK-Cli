@@ -16,16 +16,5 @@
 defined('JBZOO_CLI') or die;
 
 return array(
-    'debug'   => 1,
-    'host'    => 'example.com',
-
-    'auth'    => array(
-        'login'     => 'admin',
-        'pass'      => '123456',
-        'secretkey' => '', // usually it's empty
-    ),
-
-    'reindex' => array(
-        'step' => 10,
-    ),
+    'step' => 100,
 );
