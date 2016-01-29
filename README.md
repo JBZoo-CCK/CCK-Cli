@@ -37,6 +37,7 @@ Add new commands
 export
   export:categories  Export categories to CSV file
   export:items       Export items to CSV file
+  export:yandexyml   Export for Yandex.Market
 
 import
   import:categories  Import categories from CSV file
