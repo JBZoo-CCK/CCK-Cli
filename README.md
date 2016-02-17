@@ -27,7 +27,7 @@ composer create-project jbzoo/cck-cli:1.x-dev ./cli/jbzoo/
 
 This screen is just preview of beta version.
 So, full command list see via `jbzoo list`.
-![Output example#1](http://llfl.ru/images/pa/vrsv.png)
+![Output example#1](http://jbzoo.ru/images/blog/jbzoo-import-by-cron/example.png)
 
 
 ### Todo list
