@@ -18,7 +18,7 @@ namespace JBZoo\Console;
 use JBZoo\Data\Data;
 use JBZoo\Data\PHPArray;
 use JBZoo\Utils\FS;
-use JBZoo\Utils\OS;
+use JBZoo\Utils\Sys;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -157,15 +157,12 @@ class CommandJBZoo extends Command
             error_reporting(E_ERROR | E_WARNING);
         }
 
-        $memory = $this->_globConfig->get('memory', '512M');
+        $memory = $this->_globConfig->get('memory', '1024M');
         $time   = (int)$this->_globConfig->get('time', 1800);
 
-        OS::iniSet('memory_limit', $memory);
-        OS::iniSet('display_errors', 1);
-        OS::iniSet('max_execution_time', $time);
-        if (function_exists('set_time_limit')) {
-            @set_time_limit($time);
-        }
+        Sys::iniSet('display_errors', 1);
+        Sys::setTime($time);
+        Sys::setMemory($memory);
     }
 
     /**
