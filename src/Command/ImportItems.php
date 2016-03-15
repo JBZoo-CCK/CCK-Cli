@@ -105,7 +105,7 @@ class ImportItems extends CommandJBZoo
 
         // Show progress bar and run process
         $jbimport = $this->_jbimport;
-        $this->_progressBar('import', $csvInfo['count'], $stepSize, function ($currentStep) use ($jbimport) {
+        $this->_progressBar('import', $stepsCount, 1, function ($currentStep) use ($jbimport) {
             $result = $jbimport->itemsProcess($currentStep);
             return ($result['progress'] >= 100) ? false : true;
         });
