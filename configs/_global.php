@@ -16,9 +16,10 @@
 defined('JBZOO_CLI') or die;
 
 return array(
-    'host' => '', // "my-current-site.com"
-
-    'auth' => array(
+    'host'   => '', // "my-current-site.com"
+    'memory' => '512M',
+    'time'   => 1800,
+    'auth'   => array(
         'login'     => 'admin',
         'pass'      => '123456',
         'secretkey' => '', // usually it's empty
