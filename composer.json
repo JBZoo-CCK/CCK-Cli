@@ -24,10 +24,10 @@
     },
     "require"           : {
         "php"             : ">=5.4",
-        "jbzoo/console"   : "^1.0",
+        "jbzoo/console"   : "^1.1",
         "jbzoo/data"      : "^1.0",
-        "jbzoo/utils"     : "^1.6",
-        "symfony/process" : "^3.0"
+        "jbzoo/utils"     : "^1.6.2",
+        "symfony/process" : "^2.8"
     },
     "config"            : {
         "optimize-autoloader" : true,

@@ -17,7 +17,9 @@ namespace JBZoo\Console\Command;
 
 use JBZoo\Console\CommandJBZoo;
 use JBZoo\Data\Data;
-use Symfony\Component\Console\Helper\ProgressBar;
+use JBZoo\Utils\Cli;
+use JBZoo\Utils\Env;
+use JBZoo\Utils\FS;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -39,6 +41,11 @@ class ImportItems extends CommandJBZoo
     protected $_jbsession = null;
 
     /**
+     * @var string
+     */
+    protected $_tmpFile = '';
+
+    /**
      * Configuration of command
      */
     protected function configure() // @codingStandardsIgnoreLine
@@ -52,6 +59,19 @@ class ImportItems extends CommandJBZoo
                 InputOption::VALUE_REQUIRED,
                 'Profile name is PHP-file in \'config\' directory like \'import-items-<NAME>.php\'  ',
                 'default'
+            )
+            ->addOption(
+                'stepmode',
+                null,
+                InputOption::VALUE_NONE,
+                'Enable step mode. Each step call itself. Experimental for memory optimization'
+            )
+            ->addOption(
+                'step',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Current step number for step mode',
+                -1
             );
     }
 
@@ -64,6 +84,9 @@ class ImportItems extends CommandJBZoo
 
         $this->_jbimport  = $this->app->jbimport;
         $this->_jbsession = $this->app->jbsession;
+
+        $this->_tmpFile = JBZOO_CLI_ROOT . '/resources/tmp/session.ser';
+        @mkdir(dirname($this->_tmpFile), 0777, true);
     }
 
     /**
@@ -74,6 +97,7 @@ class ImportItems extends CommandJBZoo
      * @return int|null|void
      *
      * @SuppressWarnings(PHPMD.Superglobals)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     protected function execute(InputInterface $input, OutputInterface $output) // @codingStandardsIgnoreLine
     {
@@ -82,9 +106,16 @@ class ImportItems extends CommandJBZoo
 
         // Prepare
         if ((int)$this->_config->get('reindex', 0)) {
-            //$this->_('Database ReIndex = true', 'info');
+            $this->_('Database ReIndex = true', 'info');
+            $_GET['controller'] = $_REQUEST['controller'] = 'cli-import'; // emulate browser and admin CP
+        } else {
+            $this->_('Database ReIndex = false', 'info');
             $_GET['controller'] = $_REQUEST['controller'] = 'jbimport'; // emulate browser and admin CP
         }
+
+        $stepMode    = $this->_getOpt('stepmode');
+        $step        = $this->_getOpt('step');
+        $profileName = $this->_getOpt('profile');
 
         $csvInfo    = $this->_getCsvInfo();
         $sesData    = $this->_initJoomlaSession($csvInfo);
@@ -102,21 +133,74 @@ class ImportItems extends CommandJBZoo
         $this->_('CSV lines: ' . $csvInfo['count'], 'Info');
         $this->_('Step size: ' . $stepSize, 'Info');
         $this->_('Steps count: ' . $stepsCount, 'Info');
+        $this->_('Step mode: ' . ($stepMode ? 'on' : 'off'), 'Info');
 
         // Show progress bar and run process
-        $jbimport = $this->_jbimport;
-        $this->_progressBar('import', $stepsCount, 1, function ($currentStep) use ($jbimport) {
-            $result = $jbimport->itemsProcess($currentStep);
-            return ($result['progress'] >= 100) ? false : true;
-        });
-        $this->_showProfiler('Import - finished');
+        $jbimport   = $this->_jbimport;
+        $_this      = $this;
+        $isFinished = false;
 
-        // Remove or disable other items
-        $this->_postImport();
-        $this->_showProfiler('Import - Post handler');
+        if ($stepMode) {
 
-        $this->_moveCsvFile($csvInfo['path']);
-        $this->_showProfiler('Import - Done!');
+            if ($step >= 0) {
+                $jbimport->itemsProcess($step);
+                $this->_addTmpData($this->_jbsession->get('ids', 'import-ids'));
+
+            } else {
+
+                $this->_cleanTmpData();
+
+                $this->_progressBar(
+                    'import',
+                    $stepsCount,
+                    1,
+                    function ($currentStep) use ($jbimport, $stepsCount, $profileName, $_this) {
+
+                        $phpBin  = Env::getBinary();
+                        $binPath = './' . FS::getRelative($_SERVER['SCRIPT_FILENAME'], JPATH_ROOT, '/');
+                        $options = array(
+                            'profile'  => $profileName,
+                            'step'     => (int)$currentStep,
+                            'stepmode' => '',
+                            'q'        => '',
+                        );
+
+                        $result = Cli::exec($phpBin . ' ' . $binPath . ' import:items', $options, JPATH_ROOT, false);
+
+                        if (0 && $this->_isDebug()) {
+                            $_this->_($result);
+                        }
+
+                        return $currentStep <= $stepsCount;
+                    }
+                );
+
+                $this->_jbsession->set('ids', $this->_getTmpData(), 'import-ids');
+                $isFinished = true;
+            }
+
+        } else {
+            $this->_progressBar('import', $stepsCount, 1, function ($currentStep) use ($jbimport) {
+                $result = $jbimport->itemsProcess($currentStep);
+                return ($result['progress'] >= 100) ? false : true;
+            });
+
+            $isFinished = true;
+        }
+
+        if ($isFinished) {
+            $this->_showProfiler('Import - finished');
+
+            // Remove or disable other items
+            $this->_jbsession->set('ids', $this->_getTmpData(), 'import-ids');
+            $this->_postImport();
+            $this->_showProfiler('Import - Post handler');
+
+            $this->_moveCsvFile($csvInfo['path']);
+            $this->_showProfiler('Import - Done!');
+
+            $this->_cleanTmpData();
+        }
     }
 
     /**
@@ -200,6 +284,13 @@ class ImportItems extends CommandJBZoo
         $addedIds = (array)$this->_jbsession->get('ids', 'import-ids');
         $addedIds = array_filter($addedIds);
 
+        $mode = $this->_jbsession->get('lose', 'import');
+        if ($mode == 0) {
+            $this->_('No post precessing', 'Info');
+        } else {
+            $this->_('Total items imported: ' . count($addedIds), 'Info');
+        }
+
         $this->_jbsession->set('ids', $addedIds, 'import-ids');
 
         @$this->_jbimport->itemsPostProcess();
@@ -229,5 +320,37 @@ class ImportItems extends CommandJBZoo
         }
 
         return true;
+    }
+
+    /**
+     * @return array|string
+     */
+    protected function _getTmpData()
+    {
+        $data = array();
+
+        if (file_exists($this->_tmpFile)) {
+            $data = (array)unserialize(file_get_contents($this->_tmpFile));
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param $data
+     */
+    protected function _addTmpData($data)
+    {
+        $prevData = $this->_getTmpData();
+        $data     = array_merge((array)$data, (array)$prevData);
+        file_put_contents($this->_tmpFile, serialize($data));
+    }
+
+    /**
+     * Clean tmp file
+     */
+    protected function _cleanTmpData()
+    {
+        @unlink($this->_tmpFile);
     }
 }
