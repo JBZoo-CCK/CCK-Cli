@@ -90,8 +90,7 @@ class CommandJBZoo extends Command
         $_SERVER['SCRIPT_NAME'] = JPATH_BASE . '/administrator/index.php'; // Joomla Enviroment mini-hack
 
         require_once JPATH_BASE . '/includes/defines.php';
-        require_once JPATH_LIBRARIES . '/import.legacy.php';
-        require_once JPATH_LIBRARIES . '/cms.php';
+        require_once JPATH_BASE . '/includes/framework.php';
 
         // prepare env (emulate browser)
         $_SERVER['HTTP_HOST']      = $this->_globConfig->get('host');
