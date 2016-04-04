@@ -65,6 +65,37 @@ class ExportYmlItems extends CommandJBZoo
     }
 
     /**
+     * Init Joomla Framework.
+     *
+     * @SuppressWarnings(PHPMD.Superglobals)
+     * @return void
+     */
+    protected function _loadJoomla()
+    {
+        define('_JEXEC', 1);
+        define('JDEBUG', 0); // Exclude Joomla Debug Mode from JBZoo Cli. Cause it has some bugs
+        define('JPATH_BASE', JBZOO_CLI_JOOMLA_ROOT); // website root directory
+
+        require_once JPATH_BASE . '/includes/defines.php';
+        require_once JPATH_BASE . '/includes/framework.php';
+
+        // prepare env (emulate browser)
+        $this->_browserEmulator();
+
+        if (!$_SERVER['HTTP_HOST']) {
+            $this->_('Host is undefined. Please, check global config "./config/_global.php"', 'Error');
+            $this->_('Joomla need it for browser simulation', 'Error', 1);
+        }
+
+        // no output
+        $_GET['tmpl'] = $_REQUEST['tmpl'] = 'raw';
+        $_GET['lang'] = $_REQUEST['lang'] = 'ru';
+
+        // init Joomla App ( Front-end emulation )
+        \JFactory::getApplication('site');
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function _init()
@@ -82,10 +113,8 @@ class ExportYmlItems extends CommandJBZoo
     protected function _setupConfigure()
     {
         $configModel = \JBModelConfig::model();
-        $siteUrl = $this->_config->find('params.site_url', 'my-site.ru');
-
         $configModel->setGroup('config.yml', array(
-            'site_url'      => $siteUrl,
+            'site_url'      => rtrim(\JUri::root(), '/'),
             'file_path'     => $this->_getFilePath(),
             'file_name'     => $this->_getProfFileName(),
             'site_name'     => $this->_config->find('params.site_name', 'My site name'),
@@ -100,30 +129,6 @@ class ExportYmlItems extends CommandJBZoo
     }
 
     /**
-     * @return mixed|string
-     */
-    protected function _getFileName()
-    {
-        return $this->_config->find('params.file_name', 'yml');
-    }
-
-    /**
-     * @return string
-     */
-    protected function _getProfFileName()
-    {
-        return Slug::filter($this->_getFileName() . '-' . $this->_getOpt('profile'));
-    }
-
-    /**
-     * @return mixed|string
-     */
-    protected function _getFilePath()
-    {
-        return $this->_config->find('params.file_path', 'cli/jbzoo/resources/sources');
-    }
-
-    /**
      * Executes the current command.
      *
      * @param InputInterface $input
@@ -134,7 +139,6 @@ class ExportYmlItems extends CommandJBZoo
     {
         $this->_executePrepare($input, $output);
 
-        $this->_browserEmulator();
         $this->_init();
         $this->_setupConfigure();
 
@@ -162,30 +166,47 @@ class ExportYmlItems extends CommandJBZoo
     }
 
     /**
+     * @return mixed
+     */
+    protected function _getSiteUrl()
+    {
+        return $this->_globConfig->get('host');
+    }
+
+    /**
+     * @return mixed|string
+     */
+    protected function _getFileName()
+    {
+        return $this->_config->find('params.file_name', 'yml');
+    }
+
+    /**
+     * @return string
+     */
+    protected function _getProfFileName()
+    {
+        return Slug::filter($this->_getFileName() . '-' . $this->_getOpt('profile'));
+    }
+
+    /**
+     * @return mixed|string
+     */
+    protected function _getFilePath()
+    {
+        return $this->_config->find('params.file_path', 'cli/jbzoo/resources/sources');
+    }
+
+    /**
      * @return void
      */
     protected function _browserEmulator()
     {
-        // Web-server emulator
-        $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
-        $_SERVER['SERVER_NAME']     = 'jbzoo220.realty';
-        $_SERVER['DOCUMENT_ROOT']   = realpath('.');
-        // Local host
-        $_SERVER['REMOTE_ADDR']     = '127.0.0.1';
-        $_SERVER['SERVER_PORT']     = '80';
-        $_SERVER['REMOTE_PORT']     = '54778';
-        $_SERVER['SERVER_SOFTWARE'] = 'Apache/2.2.29';
-        // HTTP headers
-        $_SERVER['HTTP_HOST']            = 'crosscms.com';
-        $_SERVER['HTTP_ACCEPT']          = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8';
-        $_SERVER['HTTP_USER_AGENT']      = 'JBZoo PHPUnit Tester';
-        $_SERVER['HTTP_CONNECTION']      = 'keep-alive';
-        $_SERVER['HTTP_CACHE_CONTROL']   = 'max-age=0';
-        $_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate, sdch';
-        $_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4';
-        // request
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_SERVER['REQUEST_URI']    = 'jbzoo220.realty';
-        $_SERVER['QUERY_STRING']   = '';
+        $_SERVER['SCRIPT_NAME']   = '/index.php';
+        $_SERVER['REQUEST_URI']   = '/index.php';
+        $_SERVER['PHP_SELF']      = '/index.php';
+        $_SERVER['HTTP_HOST']     = $this->_getSiteUrl();
+        $_SERVER['SERVER_NAME']   = $this->_getSiteUrl();
+        $_SERVER['DOCUMENT_ROOT'] = JBZOO_CLI_JOOMLA_ROOT;
     }
 }
