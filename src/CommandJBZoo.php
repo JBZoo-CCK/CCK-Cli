@@ -84,7 +84,6 @@ class CommandJBZoo extends Command
     protected function _loadJoomla()
     {
         define('_JEXEC', 1);
-        define('JDEBUG', 0); // Exclude Joomla Debug Mode from JBZoo Cli. Cause it has some bugs
         define('JPATH_BASE', JBZOO_CLI_JOOMLA_ROOT); // website root directory
 
         $_SERVER['SCRIPT_NAME'] = JPATH_BASE . '/administrator/index.php'; // Joomla Enviroment mini-hack
