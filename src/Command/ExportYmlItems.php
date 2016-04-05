@@ -15,7 +15,9 @@
 
 namespace JBZoo\Console\Command;
 
+use JBZoo\Utils\Cli;
 use JBZoo\Utils\FS;
+use JBZoo\Utils\Env;
 use JBZoo\Utils\Slug;
 use JBZoo\Console\CommandJBZoo;
 use Symfony\Component\Console\Input\InputOption;
@@ -31,9 +33,9 @@ class ExportYmlItems extends CommandJBZoo
 {
 
     /**
-     * @var \JBSessionHelper
+     * @var \JBConfigHelper
      */
-    protected $_jbsession = null;
+    protected $_jbconfig = null;
 
     /**
      * @var \JBYmlHelper
@@ -41,27 +43,59 @@ class ExportYmlItems extends CommandJBZoo
     protected $_jbyml = null;
 
     /**
-     * @var \JBConfigHelper
-     */
-    protected $_jbconfig = null;
-
-    /**
-     * Configuration of command.
-     *
      * @return void
      */
-    protected function configure() // @codingStandardsIgnoreLine
+    protected function _browserEmulator()
     {
-        $this
-            ->setName('export:yml-items')
-            ->setDescription('Export items for YML file')
-            ->addOption(
-                'profile',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Profile name is PHP-file in \'config\' directory like \'export-yml-items-<NAME>.php\'  ',
-                'default'
-            );
+        $_SERVER['SCRIPT_NAME']   = '/index.php';
+        $_SERVER['REQUEST_URI']   = '/index.php';
+        $_SERVER['PHP_SELF']      = '/index.php';
+        $_SERVER['HTTP_HOST']     = $this->_getSiteUrl();
+        $_SERVER['SERVER_NAME']   = $this->_getSiteUrl();
+        $_SERVER['DOCUMENT_ROOT'] = JBZOO_CLI_JOOMLA_ROOT;
+    }
+
+    /**
+     * @return mixed|string
+     */
+    protected function _getFileName()
+    {
+        return $this->_config->find('params.file_name', 'yml');
+    }
+
+    /**
+     * @return mixed|string
+     */
+    protected function _getFilePath()
+    {
+        return $this->_config->find('params.file_path', 'cli/jbzoo/resources/sources');
+    }
+
+    /**
+     * @return string
+     */
+    protected function _getProfFileName()
+    {
+        return Slug::filter($this->_getFileName() . '-' . $this->_getOpt('profile'));
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function _getSiteUrl()
+    {
+        return $this->_globConfig->get('host');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function _init()
+    {
+        parent::_init();
+
+        $this->_jbyml     = $this->app->jbyml;
+        $this->_jbconfig  = $this->app->jbconfig;
     }
 
     /**
@@ -73,10 +107,11 @@ class ExportYmlItems extends CommandJBZoo
     protected function _loadJoomla()
     {
         define('_JEXEC', 1);
-        define('JDEBUG', 0); // Exclude Joomla Debug Mode from JBZoo Cli. Cause it has some bugs
         define('JPATH_BASE', JBZOO_CLI_JOOMLA_ROOT); // website root directory
 
+        /** @noinspection PhpIncludeInspection */
         require_once JPATH_BASE . '/includes/defines.php';
+        /** @noinspection PhpIncludeInspection */
         require_once JPATH_BASE . '/includes/framework.php';
 
         // prepare env (emulate browser)
@@ -93,18 +128,6 @@ class ExportYmlItems extends CommandJBZoo
 
         // init Joomla App ( Front-end emulation )
         \JFactory::getApplication('site');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function _init()
-    {
-        parent::_init();
-
-        $this->_jbyml     = $this->app->jbyml;
-        $this->_jbconfig  = $this->app->jbconfig;
-        $this->_jbsession = $this->app->jbsession;
     }
 
     /**
@@ -129,6 +152,37 @@ class ExportYmlItems extends CommandJBZoo
     }
 
     /**
+     * Configuration of command.
+     *
+     * @return void
+     */
+    protected function configure() // @codingStandardsIgnoreLine
+    {
+        $this
+            ->setName('export:yml-items')
+            ->setDescription('Export items for YML file')
+            ->addOption(
+                'profile',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Profile name is PHP-file in \'config\' directory like \'export-yml-items-<NAME>.php\'  ',
+                'default'
+            )->addOption(
+                'stepmode',
+                null,
+                InputOption::VALUE_NONE,
+                'Enable step mode. Each step call itself. Experimental for memory optimization'
+            )
+            ->addOption(
+                'step',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Current step number for step mode (Set automatically if enabled stepmode)',
+                -1
+            );
+    }
+
+    /**
      * Executes the current command.
      *
      * @param InputInterface $input
@@ -147,66 +201,72 @@ class ExportYmlItems extends CommandJBZoo
         $filePath   = $this->_getFilePath() . '/' . $this->_getProfFileName() . '.xml';
         $fullPath   = FS::clean(JBZOO_CLI_JOOMLA_ROOT . '/' . $filePath);
 
+        $_this       = $this;
+        $stepMode    = $this->_getOpt('stepmode');
+        $step        = $this->_getOpt('step');
+        $profileName = $this->_getOpt('profile');
+        $stepSize    = $this->_config->find('params.step_size', 25);
+
         $this->_showProfiler('YML Export - prepared');
         $this->_('YML File: ' . $fullPath, 'Info');
         $this->_('Total items: ' . $totalItems, 'Info');
+        $this->_('Step size: ' . $stepSize, 'Info');
+        $this->_('Step mode: ' . ($stepMode ? 'on' : 'off'), 'Info');
 
-        $this->_jbyml->renderStart();
+        $isFinished = false;
+        if ($stepMode) {
 
-        $this->_progressBar('yml-export', $totalItems, 1, function ($currentStep) {
-            $totalItems = $this->_jbyml->getTotal();
-            if ($currentStep <= $totalItems) {
-                $this->_jbyml->exportItems($currentStep, $currentStep + 1);
+            if ($step >= 0) {
+                $offset = $stepSize * $step;
+
+                if ($step == 0) {
+                    $this->_jbyml->renderStart();
+                }
+
+                $this->_jbyml->exportItems($offset, $stepSize);
+            } else {
+                $this->_progressBar(
+                    'yml-export',
+                    $totalItems,
+                    $stepSize,
+                    function ($currentStep) use ($profileName, $totalItems , $_this) {
+                        $phpBin  = Env::getBinary();
+                        $binPath = './' . FS::getRelative($_SERVER['SCRIPT_FILENAME'], JPATH_ROOT, '/');
+                        $options = array(
+                            'profile'  => $profileName,
+                            'step'     => (int) $currentStep,
+                            'stepmode' => '',
+                            'q'        => '',
+                        );
+
+                        $command = $phpBin . ' ' . $binPath . ' export:yml-items';
+                        $result  = Cli::exec($command, $options, JPATH_ROOT, false);
+
+                        if (0 && $this->_isDebug()) {
+                            $_this->_($result);
+                        }
+
+                        return $currentStep <= $totalItems;
+                    });
+
+                $isFinished = true;
             }
+        } else {
+            $this->_jbyml->renderStart();
+            $this->_progressBar('yml-export', $totalItems, 1, function ($currentStep) {
+                $totalItems = $this->_jbyml->getTotal();
+                if ($currentStep <= $totalItems) {
+                    $this->_jbyml->exportItems($currentStep, $currentStep + 1);
+                }
 
-            return true;
-        });
+                return true;
+            });
+            $isFinished = true;
+        }
 
-        $this->_jbyml->renderFinish();
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function _getSiteUrl()
-    {
-        return $this->_globConfig->get('host');
-    }
-
-    /**
-     * @return mixed|string
-     */
-    protected function _getFileName()
-    {
-        return $this->_config->find('params.file_name', 'yml');
-    }
-
-    /**
-     * @return string
-     */
-    protected function _getProfFileName()
-    {
-        return Slug::filter($this->_getFileName() . '-' . $this->_getOpt('profile'));
-    }
-
-    /**
-     * @return mixed|string
-     */
-    protected function _getFilePath()
-    {
-        return $this->_config->find('params.file_path', 'cli/jbzoo/resources/sources');
-    }
-
-    /**
-     * @return void
-     */
-    protected function _browserEmulator()
-    {
-        $_SERVER['SCRIPT_NAME']   = '/index.php';
-        $_SERVER['REQUEST_URI']   = '/index.php';
-        $_SERVER['PHP_SELF']      = '/index.php';
-        $_SERVER['HTTP_HOST']     = $this->_getSiteUrl();
-        $_SERVER['SERVER_NAME']   = $this->_getSiteUrl();
-        $_SERVER['DOCUMENT_ROOT'] = JBZOO_CLI_JOOMLA_ROOT;
+        if ($isFinished) {
+            $this->_jbyml->renderFinish();
+            $this->_showProfiler('Import - finished');
+        }
     }
 }

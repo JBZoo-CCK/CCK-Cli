@@ -16,12 +16,12 @@
 defined('JBZOO_CLI') or die;
 
 return array(
-    'step'       => 100,                        // Step size
     'params'     => array(
+        'step_size'     => 25,
         'app_list'      => array(1),            //  Application id,
         'site_name'     => 'My site name',
         'company_name'  => 'My company name',
-        'type_list'     => array('apartment'),  //  Item types
+        'type_list'     => array('product'),    //  Item types
         'currency_rate' => 'default',           //  Exchange rates used by site
                                                 //  CBRF - Central Bank of Russia exchange rate
                                                 //  NBU  - The course of the National Bank of Ukraine
