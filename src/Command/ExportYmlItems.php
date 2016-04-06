@@ -15,9 +15,7 @@
 
 namespace JBZoo\Console\Command;
 
-use JBZoo\Utils\Cli;
 use JBZoo\Utils\FS;
-use JBZoo\Utils\Env;
 use JBZoo\Utils\Slug;
 use JBZoo\Console\CommandJBZoo;
 use Symfony\Component\Console\Input\InputOption;
@@ -41,6 +39,11 @@ class ExportYmlItems extends CommandJBZoo
      * @var \JBYmlHelper
      */
     protected $_jbyml = null;
+
+    /**
+     * @var string
+     */
+    protected $_commandName = 'export:yml-items';
 
     /**
      * @return void
@@ -159,7 +162,7 @@ class ExportYmlItems extends CommandJBZoo
     protected function configure() // @codingStandardsIgnoreLine
     {
         $this
-            ->setName('export:yml-items')
+            ->setName($this->_commandName)
             ->setDescription('Export items for YML file')
             ->addOption(
                 'profile',
@@ -200,12 +203,8 @@ class ExportYmlItems extends CommandJBZoo
         $totalItems = $this->_jbyml->getTotal();
         $filePath   = $this->_getFilePath() . '/' . $this->_getProfFileName() . '.xml';
         $fullPath   = FS::clean(JBZOO_CLI_JOOMLA_ROOT . '/' . $filePath);
-
-        $_this       = $this;
-        $stepMode    = $this->_getOpt('stepmode');
-        $step        = $this->_getOpt('step');
-        $profileName = $this->_getOpt('profile');
-        $stepSize    = $this->_config->find('params.step_size', 25);
+        $stepMode   = $this->_getOpt('stepmode');
+        $stepSize   = $this->_config->find('params.step_size', 25);
 
         $this->_showProfiler('YML Export - prepared');
         $this->_('YML File: ' . $fullPath, 'Info');
@@ -213,10 +212,24 @@ class ExportYmlItems extends CommandJBZoo
         $this->_('Step size: ' . $stepSize, 'Info');
         $this->_('Step mode: ' . ($stepMode ? 'on' : 'off'), 'Info');
 
-        $isFinished = false;
-        if ($stepMode) {
+        $this->_progressWrap(
+            $this->_commandName,
+            $totalItems,
+            $stepSize,
 
-            if ($step >= 0) {
+            //  On start.
+            function () use ($totalItems, $stepSize) {
+                $this->_jbyml->renderStart();
+                $this->_progressBar('yml-export', $totalItems, $stepSize, function ($currentStep, $stepSize) {
+                    $offset = $stepSize * $currentStep;
+                    $this->_jbyml->exportItems($offset, $stepSize);
+                });
+
+                return true;
+            },
+
+            // On step.
+            function ($step) use ($stepSize) {
                 $offset = $stepSize * $step;
 
                 if ($step == 0) {
@@ -224,49 +237,15 @@ class ExportYmlItems extends CommandJBZoo
                 }
 
                 $this->_jbyml->exportItems($offset, $stepSize);
-            } else {
-                $this->_progressBar(
-                    'yml-export',
-                    $totalItems,
-                    $stepSize,
-                    function ($currentStep) use ($profileName, $totalItems , $_this) {
-                        $phpBin  = Env::getBinary();
-                        $binPath = './' . FS::getRelative($_SERVER['SCRIPT_FILENAME'], JPATH_ROOT, '/');
-                        $options = array(
-                            'profile'  => $profileName,
-                            'step'     => (int) $currentStep,
-                            'stepmode' => '',
-                            'q'        => '',
-                        );
+            },
 
-                        $command = $phpBin . ' ' . $binPath . ' export:yml-items';
-                        $result  = Cli::exec($command, $options, JPATH_ROOT, false);
-
-                        if (0 && $this->_isDebug()) {
-                            $_this->_($result);
-                        }
-
-                        return $currentStep <= $totalItems;
-                    });
-
-                $isFinished = true;
-            }
-        } else {
-            $this->_jbyml->renderStart();
-            $this->_progressBar('yml-export', $totalItems, 1, function ($currentStep) {
-                $totalItems = $this->_jbyml->getTotal();
-                if ($currentStep <= $totalItems) {
-                    $this->_jbyml->exportItems($currentStep, $currentStep + 1);
+            // On finish.
+            function ($isFinished) {
+                if ($isFinished) {
+                    $this->_jbyml->renderFinish();
+                    $this->_showProfiler('Import - finished');
                 }
-
-                return true;
-            });
-            $isFinished = true;
-        }
-
-        if ($isFinished) {
-            $this->_jbyml->renderFinish();
-            $this->_showProfiler('Import - finished');
-        }
+            }
+        );
     }
 }
