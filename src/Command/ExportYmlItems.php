@@ -163,7 +163,7 @@ class ExportYmlItems extends CommandJBZoo
     {
         $this
             ->setName($this->_commandName)
-            ->setDescription('Export items for YML file')
+            ->setDescription('Export items to YML file')
             ->addOption(
                 'profile',
                 null,

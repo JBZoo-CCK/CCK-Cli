@@ -21,6 +21,12 @@ composer create-project jbzoo/cck-cli:1.x-dev ./cli/jbzoo/
 ./cli/jbzoo/bin/jbzoo import:items                        # Default profile ./configs/import-items-default.php
 ./cli/jbzoo/bin/jbzoo import:items --profile=myprofile    # Custom profile ./configs/import-items-myprofile.php
 ./cli/jbzoo/bin/jbzoo import:items --profile=myprofile -v # Verbose is debug mode
+
+# Export items commands
+./cli/jbzoo/bin/jbzoo export:yml-items                      # Export items to YML file
+./cli/jbzoo/bin/jbzoo export:yml-items --profile=myprofile  # Custom profile ./configs/export-yml-items-myprofile.php
+./cli/jbzoo/bin/jbzoo export:csv-items                      # Export items to CSV file
+./cli/jbzoo/bin/jbzoo export:csv-items --profile=myprofile  # Custom profile ./configs/export-csv-items-myprofile.php
 ```
 
 ### Preview screen

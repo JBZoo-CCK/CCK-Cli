@@ -157,7 +157,7 @@ class ExportCsvItems extends ExportYmlItems
     {
         $this
             ->setName($this->_commandName)
-            ->setDescription('Export items for CSV file')
+            ->setDescription('Export items to CSV file')
             ->addOption(
                 'profile',
                 null,
