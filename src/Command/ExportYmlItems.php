@@ -10,7 +10,7 @@
  * @license   MIT
  * @copyright Copyright (C) JBZoo.com,  All rights reserved.
  * @link      https://github.com/JBZoo/CCK-Cli
- * @author    Denis Smetannikov <denis@jbzoo.com>
+ * @author    Sergey Kalistratov <kalistratov.s.m@gmail.com>
  */
 
 namespace JBZoo\Console\Command;
