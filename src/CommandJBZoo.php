@@ -15,13 +15,13 @@
 
 namespace JBZoo\Console;
 
-use JBZoo\Data\Data;
-use JBZoo\Data\PHPArray;
 use JBZoo\Utils\FS;
+use JBZoo\Data\Data;
+use JBZoo\Utils\Cli;
+use JBZoo\Utils\Env;
 use JBZoo\Utils\Sys;
+use JBZoo\Data\PHPArray;
 use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -289,5 +289,61 @@ class CommandJBZoo extends Command
 
         $progressBar->finish();
         $this->_(''); // Progress bar hack for rendering
+    }
+
+    /**
+     * Progress wrapper (if use stepmode).
+     *
+     * @param string $name
+     * @param int $total
+     * @param int $stepSize
+     * @param \Closure $onStart
+     * @param \Closure $onStepMode
+     * @param \Closure $onFinish
+     */
+    protected function _progressWrap($name, $total, $stepSize, $onStart, $onStepMode, $onFinish)
+    {
+        $_this    = $this;
+        $step     = $this->_getOpt('step');
+        $profile  = $this->_getOpt('profile');
+        $stepMode = $this->_getOpt('stepmode');
+
+        $isFinished = false;
+        if ($stepMode) {
+            if ($step >= 0) {
+                $onStepMode($step);
+            } else {
+                $this->_progressBar(
+                    $name,
+                    $total,
+                    $stepSize,
+                    function ($currentStep) use ($profile, $total, $_this, $name) {
+                        $phpBin  = Env::getBinary();
+                        $binPath = './' . FS::getRelative($_SERVER['SCRIPT_FILENAME'], JPATH_ROOT, '/');
+                        $options = array(
+                            'profile'  => $profile,
+                            'step'     => (int) $currentStep,
+                            'stepmode' => '',
+                            'q'        => '',
+                        );
+
+                        $command = $phpBin . ' ' . $binPath . ' ' . $name;
+                        $result  = Cli::exec($command, $options, JPATH_ROOT, false);
+
+                        if (0 && $this->_isDebug()) {
+                            $_this->_($result);
+                        }
+
+                        return $currentStep <= $total;
+                    }
+                );
+
+                $isFinished = true;
+            }
+        } else {
+            $isFinished = $onStart();
+        }
+
+        $onFinish($isFinished);
     }
 }
