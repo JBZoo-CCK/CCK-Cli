@@ -106,6 +106,7 @@ class CommandJBZoo extends Command
 
         // init Joomla App ( Front-end emulation )
         \JFactory::getApplication('site');
+        //\JFactory::getApplication('administrator'); // or Admin Application
     }
 
     /**
@@ -122,6 +123,10 @@ class CommandJBZoo extends Command
         \JBZoo::init();
 
         $this->app = \App::getInstance('zoo');
+        
+        $lang = \JFactory::getLanguage();
+        $lang->setDefault('ru-RU');
+        $lang->load('com_jbzoo', $this->app->path->path('jbapp:'), 'ru-RU', true);
     }
 
     /**
