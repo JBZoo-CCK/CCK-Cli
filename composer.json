@@ -26,7 +26,7 @@
         "php"             : ">=5.4",
         "jbzoo/console"   : "^1.1",
         "jbzoo/data"      : "^1.0",
-        "jbzoo/utils"     : "^1.6.2",
+        "jbzoo/utils"     : "1.x-dev",
         "symfony/process" : "^2.8"
     },
     "config"            : {
