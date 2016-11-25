@@ -15,6 +15,8 @@
 
 defined('JBZOO_CLI') or die;
 
+// putenv('PHP_BINARY_CUSTOM="/usr/bin/php5.6 -c /etc/php/apache2-php5.6/php.ini"');
+
 return array(
     'host'   => '', // "my-current-site.com"
     'memory' => '512M',
