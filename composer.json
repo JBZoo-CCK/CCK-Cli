@@ -23,11 +23,11 @@
         ]
     },
     "require"           : {
-        "php"             : ">=5.4",
+        "php"             : ">=5.6",
         "jbzoo/console"   : "^1.1",
-        "jbzoo/data"      : "^1.0",
-        "jbzoo/utils"     : "1.x-dev",
-        "symfony/process" : "^2.8"
+        "jbzoo/data"      : "^1.0|^2.0",
+        "jbzoo/utils"     : "^^2.0|^1.0",
+        "symfony/process" : "^3.0|"
     },
     "config"            : {
         "optimize-autoloader" : true,
