@@ -1,5 +1,5 @@
 {
-    "name"              : "jbzoo/cck-cli",
+    "name"              : "jbzoo-cck/cck-cli",
     "type"              : "project",
     "description"       : "Command line wrapper for Joomla JBZoo CCK",
     "keywords"          : [
